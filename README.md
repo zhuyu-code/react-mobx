@@ -1,68 +1,123 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+#运行
+npm i
+npm start
+# react-mobx+less+antd+axios
+为了识别装饰器语法，在react中需要配置的文件
+```
+npm i  @babel/plugin-proposal-decorators -d
+```
+注意一下：babel版本问题装的插件会有点问题，最好装饰器识别装两个插件
+```
+npm i babel-plugin-transform-decorators-legacy -d
+```
 
-## Available Scripts
+mobx需要下载的插件
+```
+npm i mobx-react mobx -d
+```
+安装自定义组件并且覆盖npm命令
+```
+ npm install react-app-rewired --save-dev
+```
+![image](https://minio.choerodon.com.cn/knowledgebase-service/file_1655167357f145188c28ed99f0932742_blob.png)
+安装一个别人的自定义组件customize-cra2.0版本以上
+```
+npm i customize-cra --save-dev
+```
+下载less,less-loader
+```
+npm i less less-loader --save-dev
+```
+并且配置文件config-override.js
+```
+const { override,addLessLoader, addDecoratorsLegacy } = require('customize-cra');
+module.exports = override(
+    addDecoratorsLegacy(),
+    addLessLoader({
+        strictMath: true,
+        noIeCompat: true,
+        localIdentName: "[local]--[hash:base64:5]" // if you use CSS Modules, and custom `localIdentName`, default is '[local]--[hash:base64:5]'.
+      })
+);
+```
+打包就能识别装饰器语法和less了
+最后是被装饰器是否识别成功
+在create-react-app脚手架创建的index.js直接粘贴以下代码跑下看是否有问题
+```
+import React from 'react'
+import {Component} from 'react'
+import {observer} from 'mobx-react'
+import {observable,action,computed} from 'mobx'
+import ReactDOM from 'react-dom'
 
-In the project directory, you can run:
+let timerData=observable({
+    secondsPassed:0
+});
 
-### `npm start`
+setInterval(()=>{
+    timerData.secondsPassed++;
+},1000);
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+@observer
+class Timer extends Component{
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+    @action.bound reseTime(){
+        this.props.timerData.secondsPassed=0;
+    }
+    @observable length=2;
+    @computed get squared(){
+        return this.length*this.length;
+    }
+    set squared(value){
+        this.length=Math.sqrt(value);
+    }
+    render(){
+        return (
+            <div>
+                <span>Seconds passed:{this.props.timerData.secondsPassed}</span>
+                <br/>
+                <button onClick={this.reseTime}>复位</button>
+                <div>{this.squared}</div>
+            </div>
 
-### `npm test`
+        )
+    }
+};
+ReactDOM.render(<Timer timerData={timerData}/>,document.getElementById('root'));
+```
+效果如下就成功识别装饰器语法。
+![image](https://minio.choerodon.com.cn/knowledgebase-service/file_bf70fba4ad3d4496a18515b4a6851cd4_blob.png)
+识别less是否成功，写一个less文件引入在APP.js里面，看是否能像css一样使用就行
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+配置antd或者猪齿鱼UI按需加载
+下载按需加载的插件
+```
+npm i babel-plugin-import --save-dev
+```
+下载antd和猪齿鱼UI
+```
+npm install antd --save-dev
+npm install choerodon-ui --save-dev
+```
+配置overrides里面的内容，有一个重点是可能与less配置冲突，重新配置less
+那么配置文件汇总为
+```
+const { override,addLessLoader,fixBabelImports, addDecoratorsLegacy } = require('customize-cra');
+module.exports = override(
+    addDecoratorsLegacy(),
+    addLessLoader({
+        // strictMath: true,
+        // noIeCompat: true,
+        // localIdentName: "[local]--[hash:base64:5]" // if you use CSS Modules, and custom `localIdentName`, default is '[local]--[hash:base64:5]'.
+      javascriptEnabled:true,
+      modifyVars:{
+        "@primary-color":"#0ff"
+      }
+      }),
+      fixBabelImports("import",{
+        "libraryName":"antd",
+        "libraryDirectory":"es",
+        "style":true
+      })
+);
+```
