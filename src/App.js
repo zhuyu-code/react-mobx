@@ -1,26 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React,{Fragment,Component} from "react"
+import Store from "./store/Store"
+import {observer} from "mobx-react"
+import {action} from "mobx"
+import "./1.less";
+import Axios from "axios";
+// import 'antd/dist/antd.css';
+import {Button} from "choerodon-ui"
+@observer
+class App extends Component{
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+  render(){
+      return (
+          <Fragment>
+              <input value={Store.inputValue} onChange={this.changeInput.bind(this)}/>
+              <Button type="primary" className="btn" onClick={this.addInputValue.bind(this)}>提交</Button>
+              <div>
+                  <ul>
+                      {
+                      Store.list.map((item,index)=>{
+                          return <li onClick={this.delete.bind(this,index)}>{item}</li>
+                      })
+                      }
+                  </ul>
+              </div>
+          </Fragment>
+      )
+  }
+
+  @action
+  changeInput(e){
+     
+      Store.inputValue=e.target.value;
+  }
+  @action
+  addInputValue(){
+ 
+      Store.list.push(Store.inputValue);
+      Store.inputValue="";
+      console.log(Store.list.slice())
+  }
+
+  @action
+  delete(index){
+      var store=Store.list.splice(index,1);
+  }
 }
-
 export default App;
